@@ -1,0 +1,93 @@
+#!/bin/bash
+
+PROJDIR=$(pwd)
+if [ ! ${LIPS} ] ; then
+    LIPS=$(dirname ${BASH_SOURCE[0]})
+    pushd ${LIPS}
+    LINK=$(readlink $(basename $0))
+    if [ ${LINK} ] ; then
+	cd $(dirname ${LINK})
+	LIPS=$(pwd)
+    fi
+    popd
+fi
+
+LIPS="${LIPS}/"
+
+INDIR="Raw"
+NUMDIR="Numbered"
+OUTDIR="Combined"
+OVERLAYDIR="Overlays"
+BGCOLOUR="Black"
+NUMBERFONT="ArialB"
+OUTPUTSIZE=842x595
+
+
+source "config.lips"
+
+function checkDir {
+    if [ ! -d ${1} ] ; then
+	mkdir ${1}
+    fi
+}
+
+function process {
+
+    FILE="${1}"
+    INPUT="${INDIR}/${FILE}"
+    TMPPUT="$(mktemp).png"
+    OUTPUT="${NUMDIR}/${FILE}"
+    OVERLAY="${OVERLAYDIR}/${FILE}"
+    WIDTH=$(identify -format "%[fx:w]" ${INPUT})
+    HEIGHT=$(identify -format "%[fx:h]" ${INPUT})
+    SIZE="${WIDTH}x${HEIGHT}"
+    POINTSIZE=$(echo "scale = 2; ${HEIGHT} / 15" | bc)
+    NUMBER=$(echo ${FILE} | sed 's/.*-\([0-9]*\).*/\1/' | sed 's/^0*//')
+    
+    TRANSLATEX=$(echo "scale = 2; ${POINTSIZE} * 0.5" | bc)
+    TRANSLATEY=$(echo "scale = 2; ${POINTSIZE} * 1.5" | bc)
+
+    echo "processing " ${INPUT} " into " ${OUTPUT}
+    convert -size ${SIZE} xc:${BGCOLOUR}  -font ${NUMBERFONT} -pointsize ${POINTSIZE} \
+            -fill ${TEXTCOLOUR} -draw "translate ${TRANSLATEX},${TRANSLATEY}  text 0,0 '${NUMBER}'" \
+            ${TMPPUT}
+
+    if [ -e ${OVERLAY} ] ; then
+	TMP2PUT="$(mktemp).png"
+	composite -gravity center ${OVERLAY} ${INPUT} ${TMP2PUT}
+	composite -gravity center ${TMP2PUT} ${TMPPUT} ${OUTPUT}
+    else
+	composite -gravity center ${INPUT} ${TMPPUT} ${OUTPUT}
+    fi
+}
+
+checkDir ${NUMDIR}
+checkDir ${OUTDIR}
+
+echo "PROCESSING..."
+
+for i in ${INDIR}/*.png ; do
+    process $(basename ${i}) ;
+done
+
+FILES=${NUMDIR}/*.png
+
+rm ${OUTDIR}/*.png
+
+FILES=$(echo ${FILES} | xargs -n4)
+
+
+echo "COMBINING..."
+while IFS= read -r LINE
+do
+    LIPS=${LIPS} sh ${LIPS}lips-combine.sh ${OUTDIR} "${LINE}"
+done <<< "$FILES"
+
+echo "CREATING COVER..."
+LIPS=${LIPS} sh ${LIPS}lips-gencover.sh
+
+echo "PUBLISHING..."
+if [ ${UNSCALEDOUTPUT} ] ; then
+    convert ${OUTDIR}/*.png -quality 100 ${PROJNAME}-UNSCALED.pdf
+fi
+convert ${OUTDIR}/*.png -resize ${OUTPUTSIZE} -gravity center -background ${BGCOLOUR} -extent ${OUTPUTSIZE} ${PROJNAME}.pdf
