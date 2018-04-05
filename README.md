@@ -23,6 +23,9 @@ PROJECT/
         BrickLinkExport.xml
 ```
 
+## USAGE
+To use it, put the scripts somewhere you can run it (I have them in ${HOME}/lips with a symlink from ${HOME}/bin/lips to ${HOME}/lips/lips) and then just run lips from within the directory with `config.lips`
+
 
 ## Features
 * Adds step numbers to images
