@@ -1,0 +1,36 @@
+#########################################################
+# EXAMPLE CONFIG.LIPS FILE FOR MAKING LEGO INSTRUCTIONS #
+#########################################################
+
+# Used for logo text - also for "Designed by" text
+AUTHOR=Nistur
+
+# Title of the model on the cover page
+HEADER="Sample Model"
+
+# Sub title on the cover page
+SUBHEADER="Awesome stuff"
+
+# Colour of the text on the cover page
+TEXTCOLOUR=white
+
+# Background colour of the 'lego' author logo - red looks like the official logo
+LOGOCOLOUR=red
+
+# Width of cross lines on combined pages. Will not have cross lines if commented
+# CROSSLINEWIDTH=10
+# NOTE: Will use TEXTCOLOR for line colour
+
+# Background colour of the pages - will currently apply to all pages, including cover
+BGCOLOUR="Black"
+
+# Font to use for numbering steps
+NUMBERFONT="ArialB"
+
+# Size to use for output PDF
+OUTPUTSIZE=842x595
+
+# Whether to also create an unscaled PDF. Uncomment to output it
+#UNSCALEDOUTPUT=1
+
+PROJNAME=SampleModel
